@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Login | Smart Glove</title>
+<meta name="description" content="Log in to see the signs made with the Smart Glove as text or voice, together with your health monitoring.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Schibsted+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: login card first. After login, two columns: the signed output (text or voice) on the left, health monitoring on the right. Dark, like a bedside screen. */
+:root{
+  --bg:#0A1020;--surface:#131B38;--surface2:#1A2350;--fg:#EEF1FC;--muted:#A3AED3;--line:#26325F;
+  --blue:#93A0FF;--amber:#FFC233;--ok:#4ADE80;--warn:#FFC233;--bad:#FF6B6B;--on-accent:#0A1020;
+  --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --font-body:"Schibsted Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 1.05rem/1.6 var(--font-body);min-height:100vh;background-image:radial-gradient(900px 480px at 85% -10%,#1B2A6B 0%,transparent 60%)}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--amber);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1080px;margin-inline:auto;padding-inline:clamp(16px,4vw,32px)}
+header.top{border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:60px}
+.brand{font:800 1.05rem var(--font-display);color:var(--fg);text-decoration:none;display:flex;align-items:center;gap:10px}
+.brand i{width:22px;height:22px;border-radius:6px;background:var(--blue);display:grid;place-items:center}
+.brand i::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--amber)}
+.back{font-size:.92rem;text-decoration:none;color:var(--muted);font-weight:500}
+.back:hover{color:var(--fg)}
+main{padding-block:clamp(28px,6vw,64px)}
+h1,h2,h3{font-family:var(--font-display);margin:0;line-height:1.1;letter-spacing:-.015em;text-wrap:balance}
+.label{font:500 .76rem/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.label b{color:var(--amber);font-weight:500}
+
+/* login */
+.login{max-width:460px;margin-inline:auto;display:grid;gap:22px}
+.login .logo{width:56px;height:56px;border-radius:16px;background:var(--blue);display:grid;place-items:center}
+.login .logo::after{content:"";width:20px;height:20px;border-radius:50%;background:var(--amber)}
+.login h1{font-size:clamp(2.2rem,7vw,3rem);font-weight:800}
+.login p.lead{color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,3vw,28px);display:grid;gap:18px}
+label.field{display:grid;gap:8px;font-weight:600}
+input[type=text]{font:inherit;font-size:1.1rem;color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;width:100%}
+input[type=text]::placeholder{color:#6E7AA6}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;border:0;padding:0;margin:0;min-width:0}
+.modes legend{font-weight:600;margin-bottom:8px;padding:0}
+.mode-opt{position:relative}
+.mode-opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.mode-opt span{display:grid;gap:4px;border:1.5px solid var(--line);border-radius:14px;padding:16px;background:var(--bg);height:100%}
+.mode-opt b{font:700 1.15rem var(--font-display)}
+.mode-opt small{color:var(--muted);font-size:.88rem;line-height:1.4}
+.mode-opt input:checked+span{border-color:var(--amber);background:var(--surface2)}
+.mode-opt input:focus-visible+span{outline:3px solid var(--amber);outline-offset:3px}
+.btn{font:600 1.05rem var(--font-body);cursor:pointer;border:0;border-radius:999px;padding:14px 26px;background:var(--blue);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--blue);border:2px solid var(--blue)}
+.btn.sm{padding:9px 16px;font-size:.92rem}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.err{color:var(--bad);font-size:.92rem;min-height:1.2em}
+@media (max-width:480px){.modes{grid-template-columns:1fr}}
+
+/* screen after login */
+.screen{display:grid;gap:22px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px}
+.head h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:800}
+.head h1 span{color:var(--blue)}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:8px;font:500 .78rem var(--font-mono);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--muted)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--amber)}
+.chip.live i{background:var(--ok);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.seg button{font:600 .92rem var(--font-body);border:0;background:transparent;color:var(--muted);padding:8px 18px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--amber);color:#1A1300}
+.cols{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
+.cols>*{min-width:0}
+@media (max-width:900px){.cols{grid-template-columns:1fr}}
+
+/* signs panel */
+.signs{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:clamp(18px,3vw,28px);display:grid;gap:18px}
+.signs .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.out{min-height:200px;border-radius:14px;background:var(--bg);border:1.5px solid var(--line);padding:clamp(16px,3vw,26px);display:grid;align-content:center}
+.out .big{font:800 clamp(2rem,5.5vw,3.4rem)/1.15 var(--font-display);overflow-wrap:anywhere}
+.out .big.empty{color:#6E7AA6;font-weight:600;font-size:clamp(1.3rem,3.5vw,1.8rem)}
+.out .meta{margin-top:14px;color:var(--muted);font-size:.92rem}
+.speak{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.bars{display:flex;align-items:center;gap:4px;height:40px}
+.bars i{width:5px;height:10px;border-radius:3px;background:var(--blue)}
+.speaking .bars i{animation:bar .9s ease-in-out infinite}
+.speaking .bars i:nth-child(2n){animation-delay:.15s;background:var(--amber)}
+.speaking .bars i:nth-child(3n){animation-delay:.3s}
+@keyframes bar{50%{height:36px}}
+.demo{display:grid;gap:10px;border-top:1px dashed var(--line);padding-top:16px}
+.demo .row{display:flex;flex-wrap:wrap;gap:8px}
+.demo button{font:600 .92rem var(--font-body);cursor:pointer;color:var(--fg);background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:8px 16px}
+.demo button:hover{border-color:var(--amber)}
+.note{color:var(--muted);font-size:.88rem}
+
+/* health panel */
+.health{display:grid;gap:12px}
+.health>h2{font-size:1.15rem;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.banner{border-radius:14px;padding:12px 16px;font-weight:600;border:1.5px solid var(--bad);background:rgba(255,107,107,.12);color:#FFD0D0;font-size:.95rem}
+.vital{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;min-width:0}
+.vital .num{font:800 2.4rem/1 var(--font-display);font-variant-numeric:tabular-nums}
+.vital .num small{font:500 .8rem var(--font-mono);color:var(--muted);margin-left:6px}
+.vital svg{grid-column:1/-1;width:100%;height:36px;display:block}
+.pill{font:600 .7rem var(--font-mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.pill.ok{color:var(--ok)}.pill.warn{color:var(--warn)}.pill.bad{color:var(--bad)}
+footer{border-top:1px solid var(--line);padding-block:24px;color:var(--muted);font-size:.88rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html"><i aria-hidden="true"></i>Smart Glove</a>
+    <a class="back" href="index.html">&larr; Back to project</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Login -->
+  <section class="login" id="login">
+    <div class="logo" aria-hidden="true"></div>
+    <div>
+      <h1>Log in</h1>
+      <p class="lead" style="margin-top:10px">See what you sign as text or as a voice, along with your health readings.</p>
+    </div>
+    <form class="card" id="form" novalidate>
+      <label class="field" for="nameIn">Name
+        <input type="text" id="nameIn" maxlength="40" autocomplete="name" placeholder="Enter your name">
+      </label>
+      <fieldset class="modes">
+        <legend>Show my signs as</legend>
+        <label class="mode-opt"><input type="radio" name="mode" value="text" checked><span><b>Text</b><small>Your signs appear as words on screen.</small></span></label>
+        <label class="mode-opt"><input type="radio" name="mode" value="voice"><span><b>Voice</b><small>Your signs are spoken aloud as you make them.</small></span></label>
+      </fieldset>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" type="submit">Log in</button>
+    </form>
+  </section>
+
+  <!-- After login -->
+  <section class="screen" id="screen" hidden>
+    <div class="head">
+      <div>
+        <p class="label" id="when">Logged in</p>
+        <h1>Hello, <span id="who"></span></h1>
+      </div>
+      <div class="tools">
+        <div class="seg" role="group" aria-label="Show my signs as">
+          <button type="button" id="segText" aria-pressed="true">Text</button>
+          <button type="button" id="segVoice" aria-pressed="false">Voice</button>
+        </div>
+        <button class="btn ghost sm" type="button" id="logout">Log out</button>
+      </div>
+    </div>
+
+    <div class="cols">
+      <!-- signed output -->
+      <div class="signs" id="signs">
+        <div class="bar">
+          <p class="label"><b id="modeLabel">Your signs as text</b></p>
+          <span class="chip" id="signSrc"><i></i><span id="signSrcTxt">Demo signs</span></span>
+        </div>
+        <div class="out" aria-live="polite">
+          <p class="big empty" id="outText">Start signing with the glove. Your words will appear here.</p>
+          <p class="meta" id="outMeta" hidden></p>
+        </div>
+        <div class="speak" id="speakRow" hidden>
+          <button class="btn sm" type="button" id="enableVoice" hidden>Tap to turn on voice</button>
+          <button class="btn ghost sm" type="button" id="readAll">Read it all aloud</button>
+          <button class="btn ghost sm" type="button" id="stop">Stop</button>
+          <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <p class="note" id="voiceNote" hidden></p>
+        <div class="tools"><button class="btn ghost sm" type="button" id="clear">Clear</button></div>
+
+        <div class="demo" id="demo">
+          <p class="label">Demo: pretend the glove just recognised a sign</p>
+          <div class="row">
+            <button type="button" data-sign="Hello">Hello</button>
+            <button type="button" data-sign="Thank you">Thank you</button>
+            <button type="button" data-sign="Water">Water</button>
+            <button type="button" data-sign="Help">Help</button>
+            <button type="button" data-sign="Yes">Yes</button>
+            <button type="button" data-sign="No">No</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- health monitoring -->
+      <aside class="health" aria-label="Health monitoring">
+        <h2>Health monitoring <span class="chip" id="src"><i></i><span id="srcTxt">Sample data</span></span></h2>
+        <div class="banner" id="alert" role="alert" hidden></div>
+        <div class="vital" data-k="hr">
+          <span class="label">Heart rate</span><span class="pill ok" data-pill>Normal</span>
+          <div class="num"><span data-v>--</span><small>bpm</small></div><span></span>
+          <svg viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true"><polyline data-line fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <div class="vital" data-k="spo2">
+          <span class="label">Blood oxygen</span><span class="pill ok" data-pill>Normal</span>
+          <div class="num"><span data-v>--</span><small>% SpO2</small></div><span></span>
+          <svg viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true"><polyline data-line fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <div class="vital" data-k="temp">
+          <span class="label">Body temperature</span><span class="pill ok" data-pill>Normal</span>
+          <div class="num"><span data-v>--</span><small>&deg;C</small></div><span></span>
+          <svg viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true"><polyline data-line fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <button class="btn ghost sm" type="button" id="demoAlert" hidden>Demo: simulate a health alert</button>
+        <p class="note" id="disclaimer">Health readings and signs on this page are demonstration data. This prototype is not a medical device.</p>
+      </aside>
+    </div>
+  </section>
+
+</main>
+
+<footer><div class="wrap">Multimodal Smart Glove &middot; Gesture Sync and Continuous Care &middot; Sairam Engineering College</div></footer>
+
+<script>
+/* ---------------------------------------------------------------
+   SETTINGS (leave empty to use demo data)
+
+   LIVE_SIGN_URL  returns the latest recognised sign as JSON:
+                  {"id": 17, "text": "Hello"}   (change "id" for every new sign)
+   LIVE_DATA_URL  returns the latest health readings as JSON:
+                  {"heartRate": 78, "spo2": 98, "temperature": 36.8}
+
+   For a Firebase Realtime Database, use links like
+   "https://YOUR-PROJECT-default-rtdb.firebaseio.com/sign.json"
+
+   Your existing glove web app can also send signs straight to this
+   page by calling:   window.sgReceiveSign("Hello")
+---------------------------------------------------------------- */
+const LIVE_SIGN_URL = "";
+const LIVE_DATA_URL = "";
+const SIGN_POLL_MS = 1000;
+const HEALTH_POLL_MS = 3000;
+
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var state={name:"",mode:"text",words:[],lastId:null,hist:{hr:[],spo2:[],temp:[]},healthTimer:null,signTimer:null,forceAlert:false,liveHealth:false,voiceReady:false,sim:{hr:76,spo2:98,temp:36.7}};
+
+  /* ---------- query string: output.html?name=Priya&mode=voice ---------- */
+  var q=new URLSearchParams(location.search);
+  var qName=(q.get("name")||"").trim().slice(0,40),qMode=q.get("mode");
+  var saved="";try{saved=localStorage.getItem("sg_name")||"";}catch(e){}
+  $("nameIn").value=qName||saved;
+  if(qMode==="voice"||qMode==="text"){document.querySelector('input[name=mode][value='+qMode+']').checked=true;}
+
+  /* ---------- signed output ---------- */
+  var synth=window.speechSynthesis,canSpeak=!!synth&&typeof SpeechSynthesisUtterance!=="undefined";
+  function sentence(){
+    var s=state.words.join(" ");
+    return s?s.charAt(0).toUpperCase()+s.slice(1):"";
+  }
+  function showText(){
+    var s=sentence(),el=$("outText");
+    if(!s){el.textContent="Start signing with the glove. Your words will appear here.";el.className="big empty";$("outMeta").hidden=true;return;}
+    el.textContent=s;el.className="big";
+    $("outMeta").hidden=false;$("outMeta").textContent="Last sign received at "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  }
+  function speak(text,queue){
+    if(!canSpeak||!text)return;
+    if(!queue)synth.cancel();
+    var u=new SpeechSynthesisUtterance(text);u.lang="en-IN";u.rate=.95;
+    var vs=synth.getVoices(),v=vs.filter(function(x){return /en[-_]IN/i.test(x.lang);})[0]||vs.filter(function(x){return /^en/i.test(x.lang);})[0];
+    if(v)u.voice=v;
+    u.onstart=function(){$("speakRow").classList.add("speaking");};
+    u.onend=u.onerror=function(){if(!synth.speaking)$("speakRow").classList.remove("speaking");};
+    synth.speak(u);
+  }
+  function stopSpeak(){if(canSpeak)synth.cancel();$("speakRow").classList.remove("speaking");}
+
+  function receiveSign(text){
+    text=String(text||"").trim().slice(0,60);
+    if(!text||$("screen").hidden)return;
+    state.words.push(text);
+    showText();
+    if(state.mode==="voice"&&state.voiceReady)speak(text,true);
+  }
+  window.sgReceiveSign=receiveSign;
+
+  function pollSign(){
+    if(!LIVE_SIGN_URL)return;
+    fetch(LIVE_SIGN_URL,{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.text&&d.id!==state.lastId){var first=state.lastId===null;state.lastId=d.id;if(!first)receiveSign(d.text);}
+      setSignSource(true);
+    }).catch(function(){setSignSource(false);});
+  }
+  function setSignSource(live){
+    $("signSrc").classList.toggle("live",live);
+    $("signSrcTxt").textContent=live?"Live from glove":"Demo signs";
+    $("demo").hidden=live;
+  }
+
+  /* ---------- mode ---------- */
+  function setMode(m){
+    state.mode=m;
+    $("segText").setAttribute("aria-pressed",m==="text");
+    $("segVoice").setAttribute("aria-pressed",m==="voice");
+    $("modeLabel").textContent=m==="voice"?"Your signs as voice":"Your signs as text";
+    $("speakRow").hidden=m!=="voice";
+    $("voiceNote").hidden=m!=="voice";
+    if(m==="voice"){
+      $("voiceNote").textContent=canSpeak?"Each sign is spoken aloud as it is recognised. The words also stay on screen.":"This browser cannot speak aloud, so your signs are shown as text only.";
+      $("readAll").disabled=!canSpeak;$("stop").disabled=!canSpeak;
+      $("enableVoice").hidden=state.voiceReady||!canSpeak;
+    }else{stopSpeak();}
+  }
+
+  /* ---------- health monitoring (display only) ---------- */
+  function classify(k,v){
+    if(k==="hr"){ if(v<50||v>120)return["bad","Check now"]; if(v<60||v>100)return["warn","Watch"]; return["ok","Normal"]; }
+    if(k==="spo2"){ if(v<90)return["bad","Check now"]; if(v<95)return["warn","Low"]; return["ok","Normal"]; }
+    if(v>=38||v<35)return["bad","Check now"]; if(v>=37.3||v<36.1)return["warn","Watch"]; return["ok","Normal"];
+  }
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function simulate(){
+    var s=state.sim;
+    if(state.forceAlert)return{hr:Math.round(rnd(116,124)),spo2:Math.round(rnd(89,92)),temp:+rnd(38.1,38.5).toFixed(1)};
+    s.hr+=rnd(-2,2);s.hr=Math.min(88,Math.max(68,s.hr));
+    s.spo2+=rnd(-.5,.5);s.spo2=Math.min(99,Math.max(96,s.spo2));
+    s.temp+=rnd(-.05,.05);s.temp=Math.min(37.0,Math.max(36.4,s.temp));
+    return{hr:Math.round(s.hr),spo2:Math.round(s.spo2),temp:+s.temp.toFixed(1)};
+  }
+  function getHealth(){
+    if(!LIVE_DATA_URL){state.liveHealth=false;return Promise.resolve(simulate());}
+    return fetch(LIVE_DATA_URL,{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+      if(!d||d.heartRate==null)throw new Error("bad data");
+      state.liveHealth=true;
+      return{hr:Math.round(+d.heartRate),spo2:Math.round(+d.spo2),temp:+(+d.temperature).toFixed(1)};
+    }).catch(function(){state.liveHealth=false;return simulate();});
+  }
+  function spark(el,arr){
+    var w=200,h=36,n=arr.length;if(n<2){el.setAttribute("points","");return;}
+    var mn=Math.min.apply(null,arr),mx=Math.max.apply(null,arr),span=(mx-mn)||1,pts=[];
+    for(var i=0;i<n;i++)pts.push((i/(n-1)*w).toFixed(1)+","+(h-4-((arr[i]-mn)/span)*(h-8)).toFixed(1));
+    el.setAttribute("points",pts.join(" "));
+  }
+  function renderHealth(r){
+    var names={hr:"heart rate",spo2:"blood oxygen",temp:"body temperature"},bad=[];
+    ["hr","spo2","temp"].forEach(function(k){
+      var card=document.querySelector('.vital[data-k='+k+']'),c=classify(k,r[k]);
+      card.querySelector("[data-v]").textContent=k==="temp"?r[k].toFixed(1):r[k];
+      var p=card.querySelector("[data-pill]");p.className="pill "+c[0];p.textContent=c[1];
+      var h=state.hist[k];h.push(r[k]);if(h.length>30)h.shift();
+      spark(card.querySelector("[data-line]"),h);
+      if(c[0]==="bad")bad.push(names[k]);
+    });
+    $("alert").hidden=!bad.length;
+    if(bad.length)$("alert").textContent="Alert for "+state.name+": "+bad.join(", ")+" outside the safe range. Notify the caretaker.";
+    $("src").classList.toggle("live",state.liveHealth);
+    $("srcTxt").textContent=state.liveHealth?"Live from glove":"Sample data";
+    $("demoAlert").hidden=state.liveHealth;
+    $("disclaimer").hidden=state.liveHealth&&!!LIVE_SIGN_URL;
+  }
+  function tickHealth(){getHealth().then(renderHealth);}
+
+  /* ---------- login flow ---------- */
+  function login(name,mode,auto){
+    state.name=name;$("who").textContent=name;
+    try{localStorage.setItem("sg_name",name);}catch(e){}
+    $("login").hidden=true;$("screen").hidden=false;
+    state.words=[];state.lastId=null;state.hist={hr:[],spo2:[],temp:[]};
+    state.voiceReady=!auto;           /* browsers need a tap before speaking when arriving by link */
+    $("when").textContent="Logged in at "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    showText();setMode(mode);setSignSource(false);
+    tickHealth();clearInterval(state.healthTimer);state.healthTimer=setInterval(tickHealth,HEALTH_POLL_MS);
+    clearInterval(state.signTimer);if(LIVE_SIGN_URL){pollSign();state.signTimer=setInterval(pollSign,SIGN_POLL_MS);}
+    window.scrollTo(0,0);
+  }
+  function logout(){
+    stopSpeak();clearInterval(state.healthTimer);clearInterval(state.signTimer);
+    state.forceAlert=false;$("demoAlert").textContent="Demo: simulate a health alert";
+    $("screen").hidden=true;$("login").hidden=false;$("nameIn").focus();
+  }
+
+  $("form").addEventListener("submit",function(e){
+    e.preventDefault();
+    var n=$("nameIn").value.trim();
+    if(!n){$("err").textContent="Enter your name to log in.";$("nameIn").focus();return;}
+    $("err").textContent="";
+    login(n,document.querySelector("input[name=mode]:checked").value,false);
+  });
+  $("segText").addEventListener("click",function(){setMode("text");});
+  $("segVoice").addEventListener("click",function(){state.voiceReady=true;setMode("voice");});
+  $("enableVoice").addEventListener("click",function(){state.voiceReady=true;$("enableVoice").hidden=true;speak("Voice is on.",false);});
+  $("readAll").addEventListener("click",function(){state.voiceReady=true;speak(sentence()||"No signs yet.",false);});
+  $("stop").addEventListener("click",stopSpeak);
+  $("clear").addEventListener("click",function(){state.words=[];stopSpeak();showText();});
+  $("demo").addEventListener("click",function(e){var b=e.target.closest("button[data-sign]");if(b)receiveSign(b.getAttribute("data-sign"));});
+  $("demoAlert").addEventListener("click",function(){
+    state.forceAlert=!state.forceAlert;
+    this.textContent=state.forceAlert?"Demo: back to normal":"Demo: simulate a health alert";
+    tickHealth();
+  });
+  $("logout").addEventListener("click",logout);
+  document.addEventListener("visibilitychange",function(){if(document.hidden)stopSpeak();});
+
+  /* Arrive already logged in: output.html?name=Priya&mode=text */
+  if(qName&&(qMode==="voice"||qMode==="text")){login(qName,qMode,true);}
+})();
+</script>
+</body>
+</html>
